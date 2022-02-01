@@ -10,6 +10,7 @@ let tempProduct = JSON.parse(localStorage.getItem('panier'));
 let totalQuantity = 0;
 let totalPrice = 0;
 
+
 async function getCart() {
   if (tempProduct !== null) {
     for (let i = 0; i < tempProduct.length; i++) {
@@ -32,7 +33,7 @@ async function getCart() {
               <input type="number" id="itemQuantity" name="itemQuantity" min="1" max="100" value=${tempProduct[i].quantity}>
             </div>
             <div class="cart__item__content__settings__delete">
-              <button id="deleteItem" type="button" data-id="${i}" onclick="getTip(this)">Supprimer</button>
+              <button id="deleteItem" type="button" data-id="${i}" onclick="getId(this)">Supprimer</button>
             </div>
           </div>
         </div>
@@ -51,10 +52,54 @@ async function getCart() {
   }
 } getCart();
 
-function getTip(button) {
+function getId(button) {
   let id = button.getAttribute("data-id");
   tempProduct.splice(id, 1);
   localStorage.removeItem('panier');
   localStorage.setItem('panier', JSON.stringify(tempProduct));
   document.location.href = `./cart.html`;
 }
+
+function confirmation() {
+  const confirmationBtn = document.getElementById("order");
+  confirmationBtn.addEventListener("click", function () {
+    const form = document.querySelector(".cart__order__form")
+    let products = [] 
+    tempProduct.forEach((order) => {
+    products.push(order.id);
+    });
+    console.log (products);
+    let contact = {
+      firstName: form.firstName.value, 
+      lastName: form.lastName.value,
+      address: form.address.value,
+      city: form.city.value,
+      email: form.city.value,
+    };
+   console.log (contact);
+    if(form.firstName.value != "" && form.lastName.value != "" && form.address.value != "" && form.city.value != "" && form.email.value != "") {
+      let orderMade = { contact, products };
+  
+
+  fetch((`http://localhost:3000/api/products/order`),{
+          method: "POST",
+          headers :{'Accept':'application/json','Content-type':'application/json'
+          },
+          body : JSON.stringify(orderMade)
+      })
+      .then(res =>{
+          return res.json();
+      })
+      .then((confirm)=>{
+        //localStorage.removeItem('product');
+        window.location.replace(`confirmation.html?order=${confirm.orderId}`);
+      })
+      .catch((error)=>{
+          //alert(error);
+          console.log(error);
+      })
+    } else {
+      window.alert("veuillez remplir les informations");
+    }
+  });
+} confirmation();
